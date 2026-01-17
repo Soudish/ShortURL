@@ -40,6 +40,9 @@ app.get('/:shortId', async (req, res) => {
     res.status(500).send("Server error");
   }
 });
+app.get("/", (req, res) => {
+  res.send("Short URL backend is live 🚀");
+});
 
 app.listen(PORT, () => {
   console.log(`Server started at ${PORT}`);
