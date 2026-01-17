@@ -1,3 +1,5 @@
+require("dotenv").config(); // 👈 ADD THIS AT TOP
+
 const express = require('express');
 const urlRoute = require('./routes/url');
 const { connectToMongoDB } = require('./connect');
@@ -5,10 +7,10 @@ const URL = require('./models/url');
 const cors = require("cors");
 
 const app = express();
-const PORT = 8001;
+const PORT = process.env.PORT || 8001; // 👈 CHANGE
 
 // Connect to MongoDB
-connectToMongoDB('mongodb://localhost:27017/short-url')
+connectToMongoDB(process.env.MONGO_URL) // 👈 CHANGE
   .then(() => console.log("MongoDB Connected"))
   .catch(err => console.log("MongoDB connection error:", err));
 
@@ -21,17 +23,20 @@ app.use("/url", urlRoute);
 app.get('/:shortId', async (req, res) => {
   try {
     const shortId = req.params.shortId;
+
     const urlEntry = await URL.findOneAndUpdate(
       { shortId },
       { $push: { visitHistory: { timestamp: Date.now() } } },
       { new: true }
     );
 
-    if (!urlEntry) return res.status(404).send("Short URL not found");
+    if (!urlEntry) {
+      return res.status(404).send("Short URL not found");
+    }
 
     res.redirect(urlEntry.redirectUrl);
   } catch (err) {
-    console.log(err);
+    console.error(err);
     res.status(500).send("Server error");
   }
 });
